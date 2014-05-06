@@ -4,7 +4,8 @@
              :refer [put! take! <! >! chan timeout sliding-buffer]
              :as async]
             [cljs-time.core :as t]
-            [cljs-time.coerce :as c]))
+            [cljs-time.coerce :as c]
+            [bardo.ease :refer [ease]]))
 
 (enable-console-print!)
 
@@ -19,8 +20,6 @@
         now (c/to-long (t/now))]
     (- now start)))
 
-(def ease-fns {:linear identity})
-
 (defn tween
   [state target]
   (fn [t]
@@ -28,11 +27,11 @@
 
 (defn transition
   ([state target] (transition state target 500))
-  ([state target duration] (transition state target duration :linear))
-  ([state target duration ease]
+  ([state target duration] (transition state target duration :cubic-in-out))
+  ([state target duration easing & ease-args]
      (let [out (chan)
            tween-fn (tween state target)
-           ease-fn (get ease-fns ease)
+           ease-fn (ease easing ease-args)
            start (t/now)
            speed-target 16
            speed-tolerance 1
@@ -41,7 +40,7 @@
                  last-time start
                  wait speed-target]
                 (let [since (time-since start)]
-                  (put! out (tween-fn t))
+                  (put! out (tween-fn (ease-fn t)))
 
                   (when (< since duration)
 
