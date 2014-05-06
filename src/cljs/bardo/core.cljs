@@ -35,7 +35,9 @@
            speed-target 16
            speed-tolerance 1
            speed-step 0.5]
-       (go-loop [t 0 last-time start wait speed-target]
+       (go-loop [t 0
+                 last-time start
+                 wait speed-target]
                 (let [since (time-since start)]
                   (log t)
 
@@ -48,7 +50,10 @@
                                            (+ speed-target speed-tolerance))
                                       wait
                                       ((if (< speed-target speed-last) - +) wait speed-step))]
-                      (when (< 0 speed)
+
+                      (when (< 0 wait)
                         (<! (timeout wait)))
 
                       (recur (ease-fn (/ since duration)) since speed-new))))))))
+
+;; (transition {} {})
