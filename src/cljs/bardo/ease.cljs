@@ -68,12 +68,9 @@
 
 (defn elastic
   "Modeled after the damped sine wave y = sin(13PI_2*x)*pow(2, 10 * (x - 1))"
-  ([] (elastic 1))
-  ([a] (elastic a 0.45))
-  ([a p]
-     (let [s (* (/ p PI_2) (.asin js/Math (/ 1 a)))]
-       (fn [t]
-         (+ 1 (* a (.pow js/Math 2 (* -10 t)) (.sin js/Math (* (- t s) (/ PI_2 p)))))))))
+  [t]
+  (* (.sin js/Math (* 13 PI_2 t))
+     (.pow js/Math 2 (* 10 (dec t)))))
 
 (defn back
   "Modeled after the overshooting cubic y = x^3-x*sin(x*pi)"

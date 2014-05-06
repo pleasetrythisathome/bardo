@@ -1,6 +1,6 @@
 # bardo
 
-A Clojure library designed to ... well, that part is up to you.
+An OM project designed to ... well, that part is up to you.
 
 ## Usage
 
