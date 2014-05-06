@@ -24,14 +24,16 @@
 (defn tween
   [state target]
   (fn [t]
-    ))
+    target))
 
 (defn transition
   ([state target] (transition state target 500))
   ([state target duration] (transition state target duration :linear))
   ([state target duration ease]
-     (let [start (t/now)
+     (let [out (chan)
+           tween-fn (tween state target)
            ease-fn (get ease-fns ease)
+           start (t/now)
            speed-target 16
            speed-tolerance 1
            speed-step 0.5]
@@ -39,7 +41,7 @@
                  last-time start
                  wait speed-target]
                 (let [since (time-since start)]
-                  (log t)
+                  (put! out (tween-fn t))
 
                   (when (< since duration)
 
@@ -54,6 +56,9 @@
                       (when (< 0 wait)
                         (<! (timeout wait)))
 
-                      (recur (ease-fn (/ since duration)) since speed-new))))))))
+                      (recur (ease-fn (/ since duration))
+                             since
+                             speed-new)))))
+       out)))
 
 ;; (transition {} {})
