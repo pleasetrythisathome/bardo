@@ -31,15 +31,24 @@
   ([state target duration] (transition state target duration :linear))
   ([state target duration ease]
      (let [start (t/now)
-           ease-fn (get ease-fns ease)]
-       (go-loop [t 0]
+           ease-fn (get ease-fns ease)
+           speed-target 16
+           speed-tolerance 1
+           speed-step 0.5]
+       (go-loop [t 0 last-time start wait speed-target]
                 (let [since (time-since start)]
                   (log t)
 
-                  ;; timeout should scale to approach 60fps
-                  ;; (<! (timeout 10))
-
                   (when (< since duration)
-                    (recur (ease-fn (/ since duration)))))))))
 
-(transition {} {})
+                    ;; converge wait time on 60fps
+                    (let [speed-last (- since last-time)
+                          speed-new (if (< (- speed-target speed-tolerance)
+                                           speed-last
+                                           (+ speed-target speed-tolerance))
+                                      wait
+                                      ((if (< speed-target speed-last) - +) wait speed-step))]
+                      (when (< 0 speed)
+                        (<! (timeout wait)))
+
+                      (recur (ease-fn (/ since duration)) since speed-new))))))))
