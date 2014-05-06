@@ -1,4 +1,5 @@
-(ns bardo.ease)
+(ns bardo.ease
+  (:refer-clojure :exclude [reverse]))
 
 (defn clamp
   [f]
