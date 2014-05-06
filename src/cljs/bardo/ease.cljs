@@ -1,5 +1,6 @@
 (ns bardo.ease
-  (:refer-clojure :exclude [reverse]))
+  (:refer-clojure :exclude [reverse])
+  (:require [clojure.string :refer [split join]]))
 
 (defn clamp
   [f]
@@ -32,8 +33,6 @@
 
 (def PI   (.-PI js/Math))
 (def PI_2 (/ (.-PI js/Math) 2))
-
-(def linear identity)
 
 (defn quad
   "Modeled after the parabola y = x^2"
@@ -96,3 +95,23 @@
                               (- t (/ 2.625 2.75))
                               (- t (/ 2.625 2.75)))
                            0.984375)))
+
+(def ease-fns {:linear identity
+               :quad quad
+               :cubic cubic
+               :poly poly
+               :sine sine
+               :circle circle
+               :exp exp
+               :elastic elastic
+               :back back
+               :bounce bounce})
+
+(defn ease
+  [key & args]
+  (let [[fn start end] (map keyword (split (name key) "-"))
+        ease-fn (or (get ease-fns fn)
+                    identity)
+        mode (or (get modes (join "-" [start end]))
+                 identity)]
+    (comp clamp node (apply ease-fn args))))
