@@ -63,4 +63,15 @@
                              speed-new)))))
        out)))
 
-;; (transition {} {})
+
+;; examples
+
+#_(defn log-transition [t]
+    (go-loop []
+             (when-let [v (<! t)]
+               (log v)
+               (recur))))
+
+;; (log-transition (transition 1 5))
+;; (log-transition (transition [1 10] [5 3] 2000))
+;; (log-transition (transition {:a 1 :b 10} {:a 5 :b 300} 1000 :elastic-in-out))
