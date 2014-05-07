@@ -1,11 +1,12 @@
 (ns bardo.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [cljs.core.async
-             :refer [put! take! <! >! chan timeout sliding-buffer]
+             :refer [put! take! <! >! chan timeout sliding-buffer close!]
              :as async]
             [cljs-time.core :as t]
             [cljs-time.coerce :as c]
-            [bardo.ease :refer [ease]]))
+            [bardo.ease :refer [ease]]
+            [bardo.interpolate :refer [interpolate]]))
 
 (enable-console-print!)
 
@@ -24,22 +25,30 @@
   ([state target] (transition state target 500))
   ([state target duration] (transition state target duration :cubic-in-out))
   ([state target duration easing & ease-args]
-     (let [out (chan)
-           tween-fn (tween state target)
+     (let [out (chan (sliding-buffer 1))
+           interpolator (interpolate state target)
            ease-fn (ease easing ease-args)
            start (t/now)
            speed-target 16
            speed-tolerance 1
            speed-step 0.5]
-       (go-loop [t 0
-                 last-time start
+
+       (go-loop [last-time start
                  wait speed-target]
-                (let [since (time-since start)]
-                  (put! out (tween-fn (ease-fn t)))
 
-                  (when (< since duration)
+                (let [since (time-since start)
+                      done? (> since duration)
+                      t (if done?
+                          1
+                          (ease-fn (/ since duration)))
+                      step (interpolator (ease-fn t))]
 
-                    ;; converge wait time on 60fps
+                  (put! out step)
+
+                  (if done?
+                    (close! out)
+
+                    ;; converge wait time on 60fps and recur
                     (let [speed-last (- since last-time)
                           speed-new (if (< (- speed-target speed-tolerance)
                                            speed-last
@@ -50,8 +59,7 @@
                       (when (< 0 wait)
                         (<! (timeout wait)))
 
-                      (recur (ease-fn (/ since duration))
-                             since
+                      (recur since
                              speed-new)))))
        out)))
 
