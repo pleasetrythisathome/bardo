@@ -96,22 +96,22 @@
                               (- t (/ 2.625 2.75)))
                            0.984375)))
 
-(def ease-fns {:linear identity
-               :quad quad
-               :cubic cubic
+(def ease-fns {:linear (constantly identity)
+               :quad (constantly quad)
+               :cubic (constantly cubic)
                :poly poly
-               :sine sine
-               :circle circle
-               :exp exp
-               :elastic elastic
-               :back back
-               :bounce bounce})
+               :sine (constantly sine)
+               :circle (constantly circle)
+               :exp (constantly exp)
+               :elastic (constantly elastic)
+               :back (constantly back)
+               :bounce (constantly bounce)})
 
 (defn ease
   [key & args]
-  (let [[fn start end] (map keyword (split (name key) "-"))
-        ease-fn (or (get ease-fns fn)
+  (let [[fn start end] (split (name key) "-")
+        ease-fn (or (get ease-fns (keyword fn))
                     identity)
-        mode (or (get modes (join "-" [start end]))
+        mode (or (get modes (keyword (join "-" [start end])))
                  identity)]
-    (comp clamp node (apply ease-fn args))))
+    ((comp clamp mode) (apply ease-fn args))))
