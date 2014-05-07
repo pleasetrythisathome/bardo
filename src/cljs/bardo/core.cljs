@@ -20,11 +20,6 @@
         now (c/to-long (t/now))]
     (- now start)))
 
-(defn tween
-  [state target]
-  (fn [t]
-    target))
-
 (defn transition
   ([state target] (transition state target 500))
   ([state target duration] (transition state target duration :cubic-in-out))
