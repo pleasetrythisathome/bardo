@@ -10,6 +10,14 @@
   PersistentVector
   (interpolate [this target]
     (fn [t]
-      (mapv (comp #(% t) interpolate) this target))))
-
-(print ((interpolate [1 2] [5 6]) 0.5))
+      (mapv (comp #(% t) interpolate) this target)))
+  List
+  (interpolate [this target]
+    (fn [t]
+      (map (comp #(% t) interpolate) this target)))
+  PersistentArrayMap
+  (interpolate [this target]
+    (fn [t]
+      (reduce-kv (fn [ret k v]
+                   (let [prev (or (get ret k) v)]
+                     (merge ret (hash-map k ((interpolate prev v) t)) ))) this target))))
