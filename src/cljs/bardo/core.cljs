@@ -20,6 +20,34 @@
     (.call now (.-performance js/window))
     (.now js/Date)))
 
+(defn on-interval
+  "runs a function intended to produce side effects at a target speed while the function returns truthy"
+  ([step] (on-interval step {}))
+  ([step {:keys [target tolerance step]
+          :or {target 16
+               tolerance 1
+               step 0.5}}]
+     (go-loop [last-time (t/now)
+               wait target]
+
+              (let [time (now)]
+
+                (when (step time)
+
+                  ;; converge wait time on 60fps and recur
+                  (let [last (- time last-time)
+                        new (if (< (- target tolerance)
+                                         last
+                                         (+ target tolerance))
+                                    wait
+                                    ((if (< target last) - +) wait step))]
+
+                    (when (< 0 wait)
+                      (<! (timeout wait)))
+
+                    (recur time
+                           new)))))))
+
 (defn on-raf
   [step]
   (if-let [native (let [vendors ["" "ms" "moz" "webkit" "o"]]
@@ -34,30 +62,7 @@
                (let [time (<! frame)]
                  (when (step time)
                    (recur)))))
-    (let [speed-target 16
-          speed-tolerance 1
-          speed-step 0.5]
-
-      (go-loop [last-time (t/now)
-                wait speed-target]
-
-               (let [time (now)]
-
-                 (when (step time)
-
-                   ;; converge wait time on 60fps and recur
-                   (let [speed-last (- time last-time)
-                         speed-new (if (< (- speed-target speed-tolerance)
-                                          speed-last
-                                          (+ speed-target speed-tolerance))
-                                     wait
-                                     ((if (< speed-target speed-last) - +) wait speed-step))]
-
-                     (when (< 0 wait)
-                       (<! (timeout wait)))
-
-                     (recur time
-                            speed-new))))))))
+    (on-interval step {:target 16})))
 
 (defn transition
   ([state target] (transition state target 500))
