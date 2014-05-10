@@ -37,10 +37,10 @@
                   ;; converge wait time on 60fps and recur
                   (let [last (- time last-time)
                         new (if (< (- target tolerance)
-                                         last
-                                         (+ target tolerance))
-                                    wait
-                                    ((if (< target last) - +) wait step))]
+                                   last
+                                   (+ target tolerance))
+                              wait
+                              ((if (< target last) - +) wait step))]
 
                     (when (< 0 wait)
                       (<! (timeout wait)))
@@ -65,12 +65,13 @@
     (on-interval step {:target 16})))
 
 (defn transition
-  ([state target] (transition state target 500))
-  ([state target duration] (transition state target duration :cubic-in-out))
-  ([state target duration easing & ease-args]
+  ([state target] (transition state target {}))
+  ([state target {:keys [duration easing]
+                  :or {duration 500
+                       easing :cubic-in-out}}]
      (let [out (chan (sliding-buffer 1))
            interpolator (interpolate state target)
-           ease-fn (ease easing ease-args)
+           ease-fn (ease easing)
            start (now)]
 
        (on-raf (fn [time]
@@ -95,5 +96,5 @@
                (recur))))
 
 ;; (log-transition (transition 1 5))
-;; (log-transition (transition [1 10] [5 3] 2000))
-;; (log-transition (transition {:a 1 :b 10} {:a 5 :b 300} 1000 :elastic-in-out))
+;; (log-transition (transition [1 10] [5 3] {:duration 2000}))
+;; (log-transition (transition {:a 1 :b 10} {:a 5 :b 300} {:duration 1000 :easing :elastic-in-out}))
