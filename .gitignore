@@ -10,3 +10,4 @@ pom.xml.asc
 /out
 /dev-resources/public/js
 .repl
+.DS_Store
