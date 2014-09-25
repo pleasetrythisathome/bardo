@@ -5,11 +5,10 @@
 (defn clamp
   [f]
   (fn [t]
-    (if (< t 0)
-      0
-      (if (< 1 t)
-        1
-        (f t)))))
+    (cond
+     (< t 0) 0
+     (> t 1) 1
+     :else (f t))))
 
 (defn reverse
   [f]
@@ -28,7 +27,7 @@
             :in-out reflect
             :out-in (comp reflect reverse)})
 
-;; Adapted from https://github.com/warrenm/AHEasing and
+;; translated from https://github.com/warrenm/AHEasing and
 ;; and https://github.com/mbostock/d3/blob/master/src/interpolate/ease.js
 
 (def PI   (.-PI js/Math))

@@ -1,25 +1,21 @@
 (ns bardo.core
-  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [cljs.core.async
-             :refer [put! take! <! >! chan timeout sliding-buffer close! alts!]
-             :as async]
-            [cljs-time.core :as t]
-            [cljs-time.coerce :as c]
-            [bardo.ease :refer [ease]]
-            [bardo.interpolate :refer [interpolate]]))
+  #+cljs
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [bardo.ease :refer [ease]]
+            [bardo.interpolate :refer [interpolate]]
+            #+cljs [cljs.core.async
+                    :refer [put! take! <! >! chan timeout sliding-buffer close! alts!]
+                    :as async]
+            #+cljs [cljs-time.core :as t]
+            #+cljs [cljs-time.coerce :as c]))
 
-(enable-console-print!)
-
-(defn log
-  "logs cljs stuff as js stuff for inspection"
-  [& args]
-  (.apply (.-log js/console) js/console (clj->js (map clj->js args))))
-
+#+cljs
 (defn now []
   (if-let [now (.-now (.-performance js/window))]
     (.call now (.-performance js/window))
     (.now js/Date)))
 
+#+clj
 (defn on-interval
   "runs a function intended to produce side effects at a target speed while the function returns truthy"
   ([step] (on-interval step {}))
@@ -48,8 +44,9 @@
                     (recur time
                            new)))))))
 
-(defn on-raf
-  [step]
+#+cljs
+(defn set-interval
+  [step-fn]
   (if-let [native (let [vendors ["" "ms" "moz" "webkit" "o"]]
                     (->> vendors
                          (map #(aget js/window (str % "requestAnimationFrame")))
@@ -60,9 +57,8 @@
                (.call native js/window (fn [time]
                                          (put! frame time)))
                (let [time (<! frame)]
-                 (when (step time)
-                   (recur)))))
-    (on-interval step {:target 16})))
+                 (when (step-fn time)
+                   (recur)))))))
 
 (defn transition
   ([state target] (transition state target {}))
@@ -74,27 +70,16 @@
            ease-fn (ease easing)
            start (now)]
 
-       (on-raf (fn [time]
-                 (let [since (- time start)
-                       done? (> since duration)
-                       t (if done?
-                           1
-                           (ease-fn (/ since duration)))
-                       step (interpolator (ease-fn t))]
-                   (put! out step)
-                   (when done?
-                     (close! out))
-                   (not done?))))
+       (set-interval
+        (fn [time]
+          (let [since (- time start)
+                done? (> since duration)
+                t (if done?
+                    1
+                    (ease-fn (/ since duration)))
+                step (interpolator (ease-fn t))]
+            (put! out step)
+            (when done?
+              (close! out))
+            (not done?))))
        out)))
-
-;; examples
-
-#_(defn log-transition [t]
-    (go-loop []
-             (when-let [v (<! t)]
-               (log v)
-               (recur))))
-
-;; (log-transition (transition 1 5))
-;; (log-transition (transition [1 10] [5 3] {:duration 2000}))
-;; (log-transition (transition {:a 1 :b 10} {:a 5 :b 300} {:duration 1000 :easing :elastic-in-out}))

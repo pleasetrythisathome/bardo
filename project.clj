@@ -5,50 +5,36 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
 
-  :source-paths ["src/cljx"]
+  :source-paths ["target/src/clj" "target/test/clj"]
+
   :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
 
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2156"]
-                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
+  :dependencies [[org.clojure/clojure "1.7.0-alpha2"]
+                 [org.clojure/clojurescript "0.0-2342"]
+                 [org.clojure/core.async "0.1.338.0-5c5012-alpha"]
+                 [clj-time "0.8.0"]
                  [com.andrewmcveigh/cljs-time "0.1.1"]]
 
-  :cljx {:builds [{:source-paths ["src/cljx"]
-                   :output-path "target/classes"
+  :cljx {:builds [{:source-paths ["src"],
+                   :output-path "target/src/clj",
                    :rules :clj}
-
-                  {:source-paths ["src/cljx"]
-                   :output-path "target/classes"
+                  {:source-paths ["src"],
+                   :output-path "target/src/cljs",
+                   :rules :cljs}
+                  {:source-paths ["test"],
+                   :output-path "target/test/clj",
+                   :rules :clj}
+                  {:source-paths ["test"],
+                   :output-path "target/test/cljs",
                    :rules :cljs}]}
+
+  :plugins [[com.keminglabs/cljx "0.3.2"]]
 
   :hooks [cljx.hooks]
 
-  :profiles {:dev {:clean-targets ["out" :target-path]
-                   :hooks [leiningen.cljsbuild]
-                   :resources-paths ["dev-resources"]
-                   :source-paths ["dev-resources/tools/http" "dev-resources/tools/repl"]
-                   :dependencies [[om "0.4.1"]
-                                  [com.facebook/react "0.8.0.1"]
-                                  [ring "1.2.1"]
-                                  [compojure "1.1.6"]
-                                  [enlive "1.1.5"]]
-                   :plugins [[com.keminglabs/cljx "0.3.2"]
-                             [com.cemerick/clojurescript.test "0.3.0"]
-                             [com.cemerick/austin "0.1.3"]
-                             [lein-cljsbuild "1.0.1"]]
-
-                   :cljsbuild
-                   {:builds {:bardo
-                             {:source-paths ["dev-resources/tools/repl"]
-                              :compiler
-                              {:optimizations :whitespace
-                               :pretty-print true}}}}
-
-                   :injections [(require '[ring.server :as http :refer [run]]
-                                         'cemerick.austin.repls)
-                                (defn browser-repl-env []
-                                  (reset! cemerick.austin.repls/browser-repl-env
-                                          (cemerick.austin/repl-env)))
-                                (defn browser-repl []
-                                  (cemerick.austin.repls/cljs-repl
-                                   (browser-repl-env)))]}})
+  :aliases {"cljx" ["with-profile" "cljx" "cljx"]
+            "build-auto" ["do" "clean,"
+                          "cljx" "once,"
+                          ["pdo"
+                           "cljx" "auto,"
+                           "cljsbuild" "auto" "test"]]})

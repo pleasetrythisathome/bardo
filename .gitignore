@@ -8,6 +8,7 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /out
-/dev-resources/public/js
+/dev-resources/public/js/
+/dev-resources/public/out/
 .repl
 .DS_Store
