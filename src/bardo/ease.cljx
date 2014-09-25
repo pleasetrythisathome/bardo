@@ -1,6 +1,6 @@
 (ns bardo.ease
   (:refer-clojure :exclude [reverse])
-  (:require [clojure.string :refer [split join]]))
+  (:require [clojure.string :as str]))
 
 (defn clamp
   [f]
@@ -109,9 +109,9 @@
 
 (defn ease
   [key & args]
-  (let [[fn start end] (split (name key) "-")
+  (let [[fn start end] (str/split (name key) #"-")
         ease-fn (or (get ease-fns (keyword fn))
                     identity)
-        mode (or (get modes (keyword (join "-" [start end])))
+        mode (or (get modes (keyword (str/join "-" [start end])))
                  identity)]
     ((comp clamp mode) (apply ease-fn args))))

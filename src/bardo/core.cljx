@@ -26,7 +26,7 @@
 #+clj
 (defn set-interval
   "runs a function intended to produce side effects at a target speed while the function returns truthy"
-  ([step] (on-interval step {}))
+  ([step] (set-interval step {}))
   ([step {:keys [target tolerance step]
           :or {target 16
                tolerance 1
@@ -38,7 +38,7 @@
 
                 (when (step time)
 
-                  ;; converge wait time on 60fps and recur
+                  ;; converge wait time on target and recur
                   (let [last (- time last-time)
                         new (if (< (- target tolerance)
                                    last
