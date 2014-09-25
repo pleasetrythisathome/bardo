@@ -3,27 +3,35 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [bardo.ease :refer [ease]]
             [bardo.interpolate :refer [interpolate]]
+            #+clj [clj-time.core :as t]
+            #+clj [clj-time.coerce :as c]
+            #+clj [clojure.core.async
+                   :refer [put! take! <! >! <!! >!! chan timeout sliding-buffer close! go go-loop alts!]
+                   :as async]
             #+cljs [cljs.core.async
                     :refer [put! take! <! >! chan timeout sliding-buffer close! alts!]
                     :as async]
             #+cljs [cljs-time.core :as t]
             #+cljs [cljs-time.coerce :as c]))
 
-#+cljs
+
 (defn now []
+  #+clj
+  (c/to-long (t/now))
+  #+cljs
   (if-let [now (.-now (.-performance js/window))]
     (.call now (.-performance js/window))
     (.now js/Date)))
 
 #+clj
-(defn on-interval
+(defn set-interval
   "runs a function intended to produce side effects at a target speed while the function returns truthy"
   ([step] (on-interval step {}))
   ([step {:keys [target tolerance step]
           :or {target 16
                tolerance 1
                step 0.5}}]
-     (go-loop [last-time (t/now)
+     (go-loop [last-time (now)
                wait target]
 
               (let [time (now)]

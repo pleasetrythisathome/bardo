@@ -2,6 +2,7 @@
 
 (defprotocol IInterpolate (interpolate [this target]))
 
+#+cljs
 (extend-protocol IInterpolate
   number
   (interpolate [this target]

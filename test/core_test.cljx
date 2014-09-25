@@ -2,10 +2,13 @@
   #+cljs
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [bardo.core :as bardo]
+            #+clj [clojure.core.async
+                   :refer [put! take! <! >! <!! >!!  chan timeout close! go go-loop]
+                   :as async]
             #+clj [clojure.test :refer :all]
             #+cljs [weasel.repl :as repl]
             #+cljs [cljs.core.async
-                    :refer [put! take! <! >! chan timeout sliding-buffer close! alts!]
+                    :refer [put! take! <! >! chan timeout close!]
                     :as async]))
 
 #+cljs
@@ -21,7 +24,6 @@
   [& args]
   (.apply (.-log js/console) js/console (clj->js (map clj->js args))))
 
-#+cljs
 (defn log-transition [t]
   (go (loop []
         (when-let [v (<! t)]
