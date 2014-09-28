@@ -63,6 +63,22 @@
              [([& _] :seq) [& _]] (coerce [x (seq y)])
              [_ _] [nil nil]))))
 
+(def hash-map? (every-pred coll? (complement sequential?)))
+
+(defn wrap-size
+  "removed keys not present in start or end of interpolation"
+  [start end]
+  (let []
+    (fn [intrpl]
+      (fn [t]
+        (let [v (intrpl t)]
+          (match [t v]
+                 [0 (_ :guard hash-map?)] (select-keys v (keys start))
+                 [1 (_ :guard hash-map?)] (select-keys v (keys end))
+                 [0 (_ :guard sequential?)] (take (count start) v)
+                 [1 (_ :guard sequential?)] (take (count end) v)
+                 [_ _] v))))))
+
 (defprotocol IInterpolate (-interpolate [start end]))
 
 (defn interpolate [start end]
@@ -72,7 +88,7 @@
     (let [can-interpolate (->> coerced
                                (mapv (partial satisfies? IInterpolate)))]
       (if (apply = true can-interpolate)
-        (apply -interpolate coerced)
+        ((apply wrap-size coerced) (apply -interpolate coerced))
         (do
           (throw
            (Exception. (str "Cannot interpolate between " start " and " end))))))))
@@ -112,19 +128,23 @@
 
 (comment
   (defn intrpl [start end]
-    ((interpolate start end) 0.5))
+    (let [i (interpolate start end)]
+      (mapv #(i %) [0 0.5 1])))
 
   (mapv #(satisfies? IInterpolate %) [1 ""])
   (satisfies? IInterpolate "")
   (intrpl 1 2)
   (intrpl [1 2] [5 6])
-  ;; fails correctly
-  (intrpl [1 5] [2 [1 2]])
-  ;; works
-  (intrpl [1 2] (range 5))
-  (intrpl (range 5) [1 2])
   (intrpl [1 2] (repeat 5))
 
+  (intrpl [1 2] (into [] (range 5)))
+  ;; size not wrapped correctly.
+  ;; coerce is taking from them since they are lazy
+  ;; maybe this is correct behavior?
+  (intrpl (range 5) [1 2])
+
+  ;; fails correctly
+  (intrpl [1 5] [2 [1 2]])
   (intrpl (repeat 5) (repeat 2))
 
   (intrpl {:a 0 :c 1} {:a 5 :b 2})
