@@ -18,6 +18,10 @@
 (defn start-cljs-repl! []
   (piggieback/cljs-repl :repl-env (browser-repl-env)))
 
+(defn reset []
+  (refresh))
+
 (comment
   (stop)
-  (start))
+  (start)
+  )
