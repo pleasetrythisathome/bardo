@@ -1,31 +1,37 @@
-{:shared {:clean-targets ["out" :target-path]}
+{:cljx {}
+ :dev {:clean-targets ["out" :target-path]
+       :hooks [leiningen.cljsbuild]
 
- :tdd [:shared 
-       {:cljsbuild
-        {:builds {:bardo
-                  {:compiler
-                   {:optimizations :whitespace
-                    :pretty-print true}}}}}]
+       :resources-paths ["dev-resources"]
+       :source-paths ["dev"]
 
- :dev [:shared
-       {:resources-paths ["dev-resources"]
-        :source-paths ["dev-resources/tools/http" "dev-resources/tools/repl"]
-        :dependencies [[ring "1.2.1"]
-                       [compojure "1.1.6"]
-                       [enlive "1.1.5"]]
-        :plugins [[com.cemerick/austin "0.1.3"]]
-        :cljsbuild
-        {:builds {:bardo
-                  {:source-paths ["dev-resources/tools/repl"]
-                   :compiler
-                   {:optimizations :whitespace
-                    :pretty-print true}}}}
+       :dependencies [[om "0.4.1"]
+                      [com.cemerick/piggieback "0.1.3"]
+                      [criterium "0.4.3"]
+                      [org.clojure/tools.namespace "0.2.4"]
+                      [weasel "0.4.0-SNAPSHOT"]]
 
-        :injections [(require '[ring.server :as http :refer [run]]
-                              'cemerick.austin.repls)
-                     (defn browser-repl-env []
-                       (reset! cemerick.austin.repls/browser-repl-env
-                                (cemerick.austin/repl-env)))
-                     (defn browser-repl []
-                       (cemerick.austin.repls/cljs-repl
-                         (browser-repl-env)))]}]}
+       :plugins [[cider/cider-nrepl "0.8.0-SNAPSHOT"]
+                 [com.cemerick/clojurescript.test "0.3.0"]
+                 [lein-cljsbuild "1.0.3"]
+                 [lein-pdo "0.1.1"]]
+
+        :repl-options {:nrepl-middleware [cider.nrepl.middleware.classpath/wrap-classpath
+                                          cider.nrepl.middleware.complete/wrap-complete
+                                          cider.nrepl.middleware.info/wrap-info
+                                          cider.nrepl.middleware.inspect/wrap-inspect
+                                          cider.nrepl.middleware.macroexpand/wrap-macroexpand
+                                          cider.nrepl.middleware.stacktrace/wrap-stacktrace
+                                          cider.nrepl.middleware.test/wrap-test
+                                          cider.nrepl.middleware.trace/wrap-trace
+                                          cider.nrepl.middleware.undef/wrap-undef
+                                          cemerick.piggieback/wrap-cljs-repl
+                                          cljx.repl-middleware/wrap-cljx]}
+       :cljsbuild
+       {:builds [{:id "test"
+                  :source-paths ["target/src/cljs" "target/test/cljs"]
+                  :compiler {:optimizations :none
+                             :pretty-print true
+                             :source-map true
+                             :output-dir "dev-resources/public/out/"
+                             :output-to "dev-resources/public/js/test.js"}}]}}}

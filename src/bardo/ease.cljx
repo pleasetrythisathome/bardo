@@ -1,15 +1,14 @@
 (ns bardo.ease
   (:refer-clojure :exclude [reverse])
-  (:require [clojure.string :refer [split join]]))
+  (:require [clojure.string :as str]))
 
 (defn clamp
   [f]
   (fn [t]
-    (if (< t 0)
-      0
-      (if (< 1 t)
-        1
-        (f t)))))
+    (cond
+     (< t 0) 0
+     (> t 1) 1
+     :else (f t))))
 
 (defn reverse
   [f]
@@ -28,11 +27,12 @@
             :in-out reflect
             :out-in (comp reflect reverse)})
 
-;; Adapted from https://github.com/warrenm/AHEasing and
+;; translated from https://github.com/warrenm/AHEasing and
 ;; and https://github.com/mbostock/d3/blob/master/src/interpolate/ease.js
 
-(def PI   (.-PI js/Math))
-(def PI_2 (/ (.-PI js/Math) 2))
+(def PI   #+clj Math/PI #+cljs (.-PI js/Math))
+(def PI_2 (/ PI 2))
+
 
 (defn quad
   "Modeled after the parabola y = x^2"
@@ -47,36 +47,36 @@
 (defn poly
   [e]
   (fn [t]
-    (.pow js/Math t e)))
+    (Math/pow t e)))
 
 (defn sine
   "Modeled after quarter-cycle of sine wave"
   [t]
-  (inc (.sin js/Math (* (dec t) PI_2))))
+  (inc (Math/sin (* (dec t) PI_2))))
 
 (defn circle
   "Modeled after shifted quadrant IV of unit circle"
   [t]
-  (- 1 (.sqrt js/Math (- 1 (* t t )))))
+  (- 1 (Math/sqrt (- 1 (* t t)))))
 
 (defn exp
   "Modeled after the exponential function y = 2^(10(x - 1))"
   [t]
   (if (= t 0)
     t
-    (.pow js/Math 2 (* 10 (dec t)))))
+    (exp 2 (* 10 (dec t)))))
 
 (defn elastic
   "Modeled after the damped sine wave y = sin(13PI_2*x)*pow(2, 10 * (x - 1))"
   [t]
-  (* (.sin js/Math (* 13 PI_2 t))
-     (.pow js/Math 2 (* 10 (dec t)))))
+  (* (Math/sin (* 13 PI_2 t))
+     (Math/pow 2 (* 10 (dec t)))))
 
 (defn back
   "Modeled after the overshooting cubic y = x^3-x*sin(x*pi)"
   [t ]
   (- (* t t t)
-     (* t (.sin js/Math (* t PI)))))
+     (* t (Math/sin (* t PI)))))
 
 (defn bounce
   "Modeled after some fun bouncing stuff"
@@ -109,9 +109,9 @@
 
 (defn ease
   [key & args]
-  (let [[fn start end] (split (name key) "-")
+  (let [[fn start end] (str/split (name key) #"-")
         ease-fn (or (get ease-fns (keyword fn))
                     identity)
-        mode (or (get modes (keyword (join "-" [start end])))
+        mode (or (get modes (keyword (str/join "-" [start end])))
                  identity)]
     ((comp clamp mode) (apply ease-fn args))))

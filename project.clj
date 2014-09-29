@@ -1,29 +1,41 @@
-(defproject bardo "0.0.1-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject bardo "0.1.0-SNAPSHOT"
+  :description "A clojure(script) library to assist with transitions between dimensions"
+  :url "https://github.com/pleasetrythisathome/bardo"
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
 
-  :min-lein-version "2.3.4"
+  :source-paths ["target/src/clj" "target/test/clj"]
 
-  :source-paths ["src/clj" "src/cljs"]
+  :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
 
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2156"]
-                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [om "0.4.1"]
-                 [com.facebook/react "0.8.0.1"]
+  :dependencies [[org.clojure/clojure "1.7.0-alpha2"]
+                 [org.clojure/clojurescript "0.0-2342"]
+                 [org.clojure/core.async "0.1.338.0-5c5012-alpha"]
+                 [org.clojure/core.match "0.2.2"]
+                 [clj-time "0.8.0"]
                  [com.andrewmcveigh/cljs-time "0.1.1"]]
 
-  :plugins [[lein-cljsbuild "1.0.2"]]
+  :cljx {:builds [{:source-paths ["src"],
+                   :output-path "target/src/clj",
+                   :rules :clj}
+                  {:source-paths ["src"],
+                   :output-path "target/src/cljs",
+                   :rules :cljs}
+                  {:source-paths ["test"],
+                   :output-path "target/test/clj",
+                   :rules :clj}
+                  {:source-paths ["test"],
+                   :output-path "target/test/cljs",
+                   :rules :cljs}]}
 
-  :hooks [leiningen.cljsbuild]
+  :plugins [[com.keminglabs/cljx "0.3.2"]]
 
-  :cljsbuild
-  {:builds {:bardo
-            {:source-paths ["src/cljs"]
-             :compiler
-             {:output-to "dev-resources/public/js/bardo.js"
-              :optimizations :advanced
-              :pretty-print false}}}})
+  :hooks [cljx.hooks]
+
+  :aliases {"cljx" ["with-profile" "cljx" "cljx"]
+            "build-auto" ["do" "clean,"
+                          "cljx" "once,"
+                          ["pdo"
+                           "cljx" "auto,"
+                           "cljsbuild" "auto" "test"]]})
