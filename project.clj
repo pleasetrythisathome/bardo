@@ -6,6 +6,7 @@
             :distribution :repo}
 
   :source-paths ["target/src/clj" "target/test/clj"]
+  :resource-paths ["target/src/cljs"]
 
   :jar-exclusions [#"\.cljx|\.swp|\.swo|\.DS_Store"]
 

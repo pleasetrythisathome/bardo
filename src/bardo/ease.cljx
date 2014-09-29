@@ -112,6 +112,10 @@
   (let [[fn start end] (str/split (name key) #"-")
         ease-fn (or (get ease-fns (keyword fn))
                     identity)
-        mode (or (get modes (keyword (str/join "-" [start end])))
-                 identity)]
+        mode (or (->> [start end]
+                      (filter identity)
+                      (str/join "-")
+                      keyword
+                      (get modes))
+                 (:in modes))]
     ((comp clamp mode) (apply ease-fn args))))
