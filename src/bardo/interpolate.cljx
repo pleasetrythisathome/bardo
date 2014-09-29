@@ -1,6 +1,8 @@
 (ns bardo.interpolate
+  #+cljs (:require-macros [cljs.core.match.macros :refer [match]])
   (:require [clojure.set :refer [union]]
-            [clojure.core.match :refer [match]]))
+            #+clj [clojure.core.match :refer [match]]
+            #+cljs [cljs.core.match]))
 
 ;; a protocol for birthing new values from nil
 (defprotocol IFresh
@@ -14,7 +16,7 @@
     0)
 
   #+clj clojure.lang.Sequential
-  #+cljs Sequential
+  #+cljs List
   (fresh [x]
     '())
 
@@ -22,6 +24,8 @@
   #+cljs PersistentArrayMap
   (fresh [x]
     {}))
+
+(def hash-map? (every-pred coll? (complement sequential?)))
 
 (defn wrap-nil
   "if a value is nil, replace it with a fresh value of the other
@@ -37,33 +41,45 @@
                        [start nil])
          [start end] [start end]))
 
-(defn is-lazy? [s]
-  (= clojure.lang.LazySeq (class s)))
+(defn wrap-infinite [x y]
+  (if (every? sequential? [x y])
+    (match (mapv counted? [x y])
+           [false false] (throw
+                        (#+cljs js/Exception #+clj #+cljs js/Exception #+clj Exception. "Cannot interpolate between two uncounted sequences"))
+           [false _] [(take (count y) x) y]
+           [_ false] [x (take (count x) y)]
+           [_ _] [x y])
+    [x y]))
 
-(defn prevent-infinite [x y]
-  (match (mapv is-lazy? [x y])
-         [true true] (throw
-                      (Exception. "Cannot interpolate between two LazySeq"))
-         [true _] [(take (count y) x) y]
-         [_ true] [x (take (count x) y)]
-         [_ _] [x y]))
+(defn juxt-args [& fns]
+  (fn [& args]
+    (map-indexed (fn [idx f]
+                   (f (nth args idx nil)))
+                 fns)))
 
-(defn coerce
-  "attempt to coerce values to the same type"
+(defn symmetrical-error
+  "calls (f x y) (f y x) and returns [x y] where f is a function (f x y) that returns [x y]"
+  [s msg f]
+  (when (or (apply f s)
+            (apply f (reverse s)))
+    (throw
+     (#+cljs js/Exception #+clj Exception. msg))))
+
+(defn pair-pred [pred]
+  (comp (partial every? identity)
+        (juxt-args pred (complement pred))))
+
+(defn wrap-errors
+  "throw appropriate errors if you can't interpolate between two values"
   [x y]
-  (let [classes (mapv class [x y])]
-    (if (apply = classes)
-      (prevent-infinite x y)
-      (match [x y]
-             ;; [seq seq]
-             [([& _] :seq) ([& _] :seq)] (prevent-infinite x y)
-             ;; [vector seq]
-             [[& _] ([& _] :seq)] (coerce [(seq x) y])
-             ;; [seq vector]
-             [([& _] :seq) [& _]] (coerce [x (seq y)])
-             [_ _] [nil nil]))))
-
-(def hash-map? (every-pred coll? (complement sequential?)))
+  (let [types {"seq" sequential?
+               "hash-map" hash-map?
+               "number" number?}]
+    (doseq [[type pred] types]
+      (symmetrical-error [x y]
+                         (str "Cannot interpolate between a " type " and something else")
+                         (pair-pred pred)))
+    [x y]))
 
 (defn wrap-size
   "removed keys not present in start or end of interpolation"
@@ -82,16 +98,16 @@
 (defprotocol IInterpolate (-interpolate [start end]))
 
 (defn interpolate [start end]
-  (let [coerced (some->> [start end]
+  (let [wrapped (some->> [start end]
                          (apply wrap-nil)
-                         (apply coerce))]
-    (let [can-interpolate (->> coerced
-                               (mapv (partial satisfies? IInterpolate)))]
+                         (apply wrap-errors)
+                         (apply wrap-infinite))]
+    (let [can-interpolate (mapv #(satisfies? IInterpolate %) wrapped)]
       (if (apply = true can-interpolate)
-        ((apply wrap-size coerced) (apply -interpolate coerced))
+        ((apply wrap-size wrapped) (apply -interpolate wrapped))
         (do
           (throw
-           (Exception. (str "Cannot interpolate between " start " and " end))))))))
+           (#+cljs js/Exception #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
 
 (extend-protocol IInterpolate
 
@@ -102,7 +118,7 @@
       (+ start (* t (- end start)))))
 
   #+clj clojure.lang.Sequential
-  #+cljs Sequential
+  #+cljs List
   (-interpolate [start end]
     (fn [t]
       (seq (for [k (range (Math/max (count start)
@@ -113,7 +129,7 @@
                   (#(% t)))))))
 
   #+clj clojure.lang.IPersistentMap
-  #+cljs IPersistentMap
+  #+cljs PersistentArrayMap
   (-interpolate [start end]
     (fn [t]
       (into {} (for [k (->> [start end]
@@ -124,28 +140,3 @@
                          (map k)
                          (apply interpolate)
                          (#(% t)))])))))
-
-
-(comment
-  (defn intrpl [start end]
-    (let [i (interpolate start end)]
-      (mapv #(i %) [0 0.5 1])))
-
-  (mapv #(satisfies? IInterpolate %) [1 ""])
-  (satisfies? IInterpolate "")
-  (intrpl 1 2)
-  (intrpl [1 2] [5 6])
-  (intrpl [1 2] (repeat 5))
-
-  (intrpl [1 2] (into [] (range 5)))
-  ;; size not wrapped correctly.
-  ;; coerce is taking from them since they are lazy
-  ;; maybe this is correct behavior?
-  (intrpl (range 5) [1 2])
-
-  ;; fails correctly
-  (intrpl [1 5] [2 [1 2]])
-  (intrpl (repeat 5) (repeat 2))
-
-  (intrpl {:a 0 :c 1} {:a 5 :b 2})
-  )
