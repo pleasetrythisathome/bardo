@@ -95,19 +95,9 @@
                  [1 (_ :guard sequential?)] (take (count end) v)
                  [_ _] v))))))
 
-(defprotocol IInterpolate (-interpolate [start end]))
+(declare interpolate)
 
-(defn interpolate [start end]
-  (let [wrapped (some->> [start end]
-                         (apply wrap-nil)
-                         (apply wrap-errors)
-                         (apply wrap-infinite))]
-    (let [can-interpolate (mapv #(satisfies? IInterpolate %) wrapped)]
-      (if (apply = true can-interpolate)
-        ((apply wrap-size wrapped) (apply -interpolate wrapped))
-        (do
-          (throw
-           (#+cljs js/Exception #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
+(defprotocol IInterpolate (-interpolate [start end]))
 
 (extend-protocol IInterpolate
 
@@ -140,3 +130,15 @@
                          (map k)
                          (apply interpolate)
                          (#(% t)))])))))
+
+(defn interpolate [start end]
+  (let [wrapped (some->> [start end]
+                         (apply wrap-nil)
+                         (apply wrap-errors)
+                         (apply wrap-infinite))]
+    (let [can-interpolate (mapv #(satisfies? IInterpolate %) wrapped)]
+      (if (apply = true can-interpolate)
+        ((apply wrap-size wrapped) (apply -interpolate wrapped))
+        (do
+          (throw
+           (#+cljs js/Exception #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
