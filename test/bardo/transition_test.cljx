@@ -1,7 +1,7 @@
-(ns bardo.core-test
+(ns bardo.transition-test
   #+cljs
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [bardo.core :as bardo]
+  (:require [bardo.transition :as bardo]
             [bardo.ease :as ease]
             [bardo.interpolate :as intrpl]
             #+clj [clojure.pprint :refer [pprint]]
