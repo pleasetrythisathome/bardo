@@ -2,10 +2,8 @@
   #+cljs (:require-macros [cljs.core.match.macros :refer [match]])
   (:require [clojure.set :refer [union]]
             #+clj [clojure.core.match :refer [match]]
-            ;;#+cljs [clojure.test :refer [function?]]
             #+cljs [cljs.core.match]
-            ;;#+cljs [cemerick.cljs.test :refer [function?]]
-            ))
+            [bardo.ease :as ease]))
 
 ;; a protocol for birthing new values from nil
 (defprotocol IFresh
@@ -95,8 +93,8 @@
           (match [t v]
                  [0 (_ :guard hash-map?)] (select-keys v (keys start))
                  [1 (_ :guard hash-map?)] (select-keys v (keys end))
-                 [0 (_ :guard sequential?)] (into '() (take (count start) v))
-                 [1 (_ :guard sequential?)] (into '() (take (count end) v))
+                 [0 (_ :guard sequential?)] (vec (take (count start) v))
+                 [1 (_ :guard sequential?)] (vec (take (count end) v))
                  [_ _] v))))))
 
 (declare interpolate)
@@ -115,12 +113,12 @@
   #+cljs List
   (-interpolate [start end]
     (fn [t]
-      (into '() (for [k (range (Math/max (count start)
-                                    (count end)))]
-             (->> [(nth start k nil) (nth end k nil)]
-                  (apply wrap-nil)
-                  (apply interpolate)
-                  (#(% t)))))))
+      (into [] (for [k (range (Math/max (count start)
+                                        (count end)))]
+                 (->> [(nth start k nil) (nth end k nil)]
+                      (apply wrap-nil)
+                      (apply interpolate)
+                      (#(% t)))))))
 
   #+clj clojure.lang.IPersistentMap
   #+cljs PersistentArrayMap
@@ -147,10 +145,56 @@
           (throw
            (#+cljs js/Exception #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
 
-(defn comp-interpolate
+(defn mix
   [start end]
   (fn [t]
     ((interpolate (start t) (end t)) t)))
 
-((comp-interpolate (interpolate [1 2] [3 4])
-                   (interpolate [1 2] [5 6])) 1)
+(defn blend
+  [intrpl end]
+  (fn [t]
+    ((interpolate (intrpl t) end) t)))
+
+(defn chain
+  ([intrpl end] (chain intrpl end 0.5))
+  ([intrpl end mid]
+     (let [start (ease/shift intrpl 0 mid)
+           end (-> (intrpl 1)
+                   (interpolate end)
+                   (ease/shift mid 1))]
+       (fn [t]
+         (cond
+          (< t mid) (start t)
+          (>= t mid) (end t))))))
+
+(defn make-range [coll]
+  (->> coll
+       ((juxt (comp #(conj % 0)
+                    (partial drop-last 1))
+              identity))
+       (apply interleave)
+       (partition 2)
+       (into [])))
+
+(defn shift-parts
+  [f input output]
+  (assert (= (count input) (count output)) "ranges must be the same length")
+  (let [[input output] (->> [input output]
+                            (mapv (comp vec (partial map-indexed vector) make-range)))]
+    (fn [t]
+      (cond
+       (= t 0) (f 0)
+       (= t 1) (f 1)
+       :else (let [[idx [istart iend]] (first (filter (comp (fn [[start end]] (<= start t end)) second) input))
+                   [_ [estart eend]] (get output (int idx))]
+               ((ease/shift f istart iend estart eend) t))))))
+
+
+(defn pipeline
+  [start second & states]
+  (let [n (+ 2 (count states))
+        input (map (partial * (/ 1 (dec n))) (range 1 n))
+        pow-2 (reverse (take (dec n) (iterate #(/ % 2) 1)))]
+    (-> (reduce chain (interpolate start second) states)
+        (shift-parts input pow-2))))
+

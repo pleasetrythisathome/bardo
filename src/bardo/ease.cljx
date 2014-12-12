@@ -3,7 +3,7 @@
   (:require [clojure.string :as str]))
 
 (defn wrap
-  [ease f]
+  [f ease]
   (fn [t]
     (f (ease t))))
 
@@ -15,13 +15,15 @@
         (> t 1) 1
         :else t))))
 
-(defn shift [f cmin cmax nmin nmax]
-  (fn [t]
-    (f (-> t
-           (- cmin)
-           (/ (- cmax cmin))
-           (* (- nmax nmin))
-           (+ nmin)))))
+(defn shift
+  ([f cmin cmax] (shift f cmin cmax 0 1))
+  ([f cmin cmax nmin nmax]
+     (fn [t]
+       (f (-> t
+              (- cmin)
+              (/ (- cmax cmin))
+              (* (- nmax nmin))
+              (+ nmin))))))
 
 (defn reverse
   [f]
