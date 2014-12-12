@@ -47,7 +47,7 @@
   (if (every? sequential? [x y])
     (match (mapv counted? [x y])
            [false false] (throw
-                        (#+cljs js/Exception #+clj #+cljs js/Exception #+clj Exception. "Cannot interpolate between two uncounted sequences"))
+                        (#+cljs js/Error #+clj #+cljs js/Exception #+clj Exception. "Cannot interpolate between two uncounted sequences"))
            [false _] [(take (count y) x) y]
            [_ false] [x (take (count x) y)]
            [_ _] [x y])
@@ -65,7 +65,7 @@
   (when (or (apply f s)
             (apply f (reverse s)))
     (throw
-     (#+cljs js/Exception #+clj Exception. msg))))
+     (#+cljs js/Error #+clj Exception. msg))))
 
 (defn pair-pred [pred]
   (comp (partial every? identity)
@@ -124,7 +124,7 @@
   #+cljs PersistentArrayMap
   (-interpolate [start end]
     (fn [t]
-      (seq (for [k (->> [start end]
+      (into {} (for [k (->> [start end]
                         (map keys)
                         (map set)
                         (apply union))]
@@ -143,7 +143,7 @@
         ((apply wrap-size wrapped) (apply -interpolate wrapped))
         (do
           (throw
-           (#+cljs js/Exception #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
+           (#+cljs js/Error #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
 
 (defn mix
   [start end]
