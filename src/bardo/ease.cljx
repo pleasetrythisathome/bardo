@@ -2,13 +2,26 @@
   (:refer-clojure :exclude [reverse])
   (:require [clojure.string :as str]))
 
+(defn wrap
+  [ease f]
+  (fn [t]
+    (f (ease t))))
+
 (defn clamp
   [f]
   (fn [t]
-    (cond
-     (< t 0) 0
-     (> t 1) 1
-     :else (f t))))
+    (f (cond
+        (< t 0) 0
+        (> t 1) 1
+        :else t))))
+
+(defn shift [f cmin cmax nmin nmax]
+  (fn [t]
+    (f (-> t
+           (- cmin)
+           (/ (- cmax cmin))
+           (* (- nmax nmin))
+           (+ nmin)))))
 
 (defn reverse
   [f]
