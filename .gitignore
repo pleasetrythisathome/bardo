@@ -6,7 +6,9 @@ pom.xml.asc
 *.jar
 *.class
 /.lein-*
-/.nrepl-port
+/.nrepl-*
+.boot
+*.iml
 /out
 /dev-resources/public/js/
 /dev-resources/public/out/
