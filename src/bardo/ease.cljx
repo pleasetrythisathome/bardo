@@ -25,6 +25,28 @@
               (* (- nmax nmin))
               (+ nmin))))))
 
+(defn make-range [coll]
+  (->> coll
+       ((juxt (comp #(conj % 0)
+                    (partial drop-last 1))
+              identity))
+       (apply interleave)
+       (partition 2)
+       (into [])))
+
+(defn shift-parts
+  [f input output]
+  (assert (= (count input) (count output)) "ranges must be the same length")
+  (let [[input output] (->> [input output]
+                            (mapv (comp vec (partial map-indexed vector) make-range)))]
+    (fn [t]
+      (cond
+       (= t 0) (f 0)
+       (= t 1) (f 1)
+       :else (let [[idx [istart iend]] (first (filter (comp (fn [[start end]] (<= start t end)) second) input))
+                   [_ [estart eend]] (get output (int idx))]
+               ((shift f istart iend estart eend) t))))))
+
 (defn reverse
   [f]
   (fn [t]

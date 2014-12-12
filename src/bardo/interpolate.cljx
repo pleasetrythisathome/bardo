@@ -167,28 +167,6 @@
           (< t mid) (start t)
           (>= t mid) (end t))))))
 
-(defn make-range [coll]
-  (->> coll
-       ((juxt (comp #(conj % 0)
-                    (partial drop-last 1))
-              identity))
-       (apply interleave)
-       (partition 2)
-       (into [])))
-
-(defn shift-parts
-  [f input output]
-  (assert (= (count input) (count output)) "ranges must be the same length")
-  (let [[input output] (->> [input output]
-                            (mapv (comp vec (partial map-indexed vector) make-range)))]
-    (fn [t]
-      (cond
-       (= t 0) (f 0)
-       (= t 1) (f 1)
-       :else (let [[idx [istart iend]] (first (filter (comp (fn [[start end]] (<= start t end)) second) input))
-                   [_ [estart eend]] (get output (int idx))]
-               ((ease/shift f istart iend estart eend) t))))))
-
 
 (defn pipeline
   [start second & states]
@@ -196,5 +174,4 @@
         input (map (partial * (/ 1 (dec n))) (range 1 n))
         pow-2 (reverse (take (dec n) (iterate #(/ % 2) 1)))]
     (-> (reduce chain (interpolate start second) states)
-        (shift-parts input pow-2))))
-
+        (ease/shift-parts input pow-2))))
