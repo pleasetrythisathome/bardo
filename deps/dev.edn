@@ -1,4 +1,0 @@
-[[spellhouse/clairvoyant "0.0-48-gf5e59d3"]
- [shodan "0.4.1"]
- [clojure-complete "0.2.4"]
- [org.clojure/tools.namespace "0.2.7"]]

@@ -1,5 +1,0 @@
-[[adzerk/boot-cljs      "0.0-2371-27" :scope "test"]
- [adzerk/boot-cljs-repl "0.1.6"       :scope "test"]
- [adzerk/boot-reload    "0.1.8"       :scope "test"]
- [deraen/boot-cljx      "0.1.0"       :scope "test"]
- [pandeiro/boot-http    "0.2.0"       :scope "test"]]
