@@ -6,8 +6,8 @@
             [clojure.test :as test]
             [clojure.tools.namespace.repl :refer [refresh refresh-all]]
 
-            [bardo.core :refer :all]
-            [bardo.ease :refer :all]
+            [bardo.transition :refer :all]
+            [bardo.ease :as ease]
             [bardo.interpolate :refer :all]))
 
 (defn reset []

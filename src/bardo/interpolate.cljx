@@ -2,7 +2,10 @@
   #+cljs (:require-macros [cljs.core.match.macros :refer [match]])
   (:require [clojure.set :refer [union]]
             #+clj [clojure.core.match :refer [match]]
-            #+cljs [cljs.core.match]))
+            ;;#+cljs [clojure.test :refer [function?]]
+            #+cljs [cljs.core.match]
+            ;;#+cljs [cemerick.cljs.test :refer [function?]]
+            ))
 
 ;; a protocol for birthing new values from nil
 (defprotocol IFresh
@@ -42,6 +45,7 @@
          [start end] [start end]))
 
 (defn wrap-infinite [x y]
+  ;;(println :wrap-infinite [x y])
   (if (every? sequential? [x y])
     (match (mapv counted? [x y])
            [false false] (throw
@@ -91,8 +95,8 @@
           (match [t v]
                  [0 (_ :guard hash-map?)] (select-keys v (keys start))
                  [1 (_ :guard hash-map?)] (select-keys v (keys end))
-                 [0 (_ :guard sequential?)] (take (count start) v)
-                 [1 (_ :guard sequential?)] (take (count end) v)
+                 [0 (_ :guard sequential?)] (into '() (take (count start) v))
+                 [1 (_ :guard sequential?)] (into '() (take (count end) v))
                  [_ _] v))))))
 
 (declare interpolate)
@@ -111,7 +115,7 @@
   #+cljs List
   (-interpolate [start end]
     (fn [t]
-      (seq (for [k (range (Math/max (count start)
+      (into '() (for [k (range (Math/max (count start)
                                     (count end)))]
              (->> [(nth start k nil) (nth end k nil)]
                   (apply wrap-nil)
@@ -122,14 +126,14 @@
   #+cljs PersistentArrayMap
   (-interpolate [start end]
     (fn [t]
-      (into {} (for [k (->> [start end]
-                            (map keys)
-                            (map set)
-                            (apply union))]
-                 [k (->> [start end]
-                         (map k)
-                         (apply interpolate)
-                         (#(% t)))])))))
+      (seq (for [k (->> [start end]
+                        (map keys)
+                        (map set)
+                        (apply union))]
+             [k (->> [start end]
+                     (map k)
+                     (apply interpolate)
+                     (#(% t)))])))))
 
 (defn interpolate [start end]
   (let [wrapped (some->> [start end]
@@ -142,3 +146,11 @@
         (do
           (throw
            (#+cljs js/Exception #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
+
+(defn comp-interpolate
+  [start end]
+  (fn [t]
+    ((interpolate (start t) (end t)) t)))
+
+((comp-interpolate (interpolate [1 2] [3 4])
+                   (interpolate [1 2] [5 6])) 1)

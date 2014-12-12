@@ -1,4 +1,4 @@
-(ns bardo.core
+(ns bardo.transition
   #+cljs
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [bardo.ease :refer [ease]]
