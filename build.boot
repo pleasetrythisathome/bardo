@@ -38,7 +38,7 @@
   "watch and compile cljx, css, cljs, init cljs-repl and push changes to browser"
   []
   (let [src (:src-paths (get-env))]
-    (set-env! :src-paths (conj src "dev")))
+    (set-env! :src-paths (conj src "dev" "examples")))
   (apply set-refresh-dirs (get-env :src-paths))
   (comp (serve :dir "target")
         (watch)
@@ -50,6 +50,29 @@
               :source-map true
               :pretty-print true)
         (reload :port 3449)))
+
+(deftask examples
+  "watch and compile cljx, css, cljs, init cljs-repl and push changes to browser"
+  []
+  (let [src (:src-paths (get-env))]
+    (set-env! :src-paths (conj src "examples")))
+  (comp (serve :dir "target")
+        (cljx)
+        (cljs :output-to "main.js"
+              :optimizations :none
+              :unified true
+              :source-map true
+              :pretty-print true)))
+
+(deftask clojars
+  "deploy library to clojars"
+  []
+  (comp (pom :project 'bardo
+             :version "0.1.0-SNAPSHOT")
+        (add-src)
+        (jar)
+        (install)
+        (push)))
 
 (defn dev
   []
