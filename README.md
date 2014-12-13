@@ -2,10 +2,11 @@
 
 A clojure(script) library to assist with transitions between dimensions. Bardo defines semantics for represting interpolators between data and provides a suite of tools for manipulating them. 
 
-More eastern themed names! Really? But I have a good reason for this one, I promise! From wikipedia,
+More eastern themed names! Really? But I have a good reason for this one, I promise! From [wikipedia](http://en.wikipedia.org/wiki/Bardo),
 
 ```
-The Tibetan word bardo (བར་དོ་ Wylie: bar do) means literally "intermediate state"—also translated as "transitional state" or "in-between state" or "liminal state".
+The Tibetan word bardo (བར་དོ་ Wylie: bar do) means literally "intermediate state"
+—also translated as "transitional state" or "in-between state" or "liminal state".
 ```
 
 Generally, the term "bardo" represents the inbetween state between life and death, during which one's consciousness is not connected to the outside world. 
@@ -62,7 +63,7 @@ Bardo defines an easing function is a single-arity function ```(fn [t] (f t))```
 
 Easing functions can also be used to define or change input boundaries. ```clamp``` and ```shift``` can be found in ```bardo.ease```
 
-```
+```clj
 (defn clamp
   [f]
   (fn [t]
@@ -91,6 +92,14 @@ Easing functions can also be used to define or change input boundaries. ```clamp
 (def percent (shift slower 0 100))
 (percent 50)
 ;; => 1/4
+```
+
+Bardo provides a higher level api for creating common easing curve functions ```bardo.ease/ease``` all of the [standard easing functions](http://easings.net/) are provided in skewer case (cubicInOut -> :cubic-in-out
+
+```clj
+(def cubic (ease/ease :cubic-in-out))
+(mapv cubic (range 0 1 (/ 1 10)))
+;; => [0.0 0.004 0.032 0.108 0.256 0.5 0.744 0.892 0.968 0.996]
 ```
 
 ## License

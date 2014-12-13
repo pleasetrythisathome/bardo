@@ -168,7 +168,7 @@
   [key & args]
   (let [[fn start end] (str/split (name key) #"-")
         ease-fn (or (get ease-fns (keyword fn))
-                    identity)
+                    (:linear ease-fns))
         mode (or (->> [start end]
                       (filter identity)
                       (str/join "-")

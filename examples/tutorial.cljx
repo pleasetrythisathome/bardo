@@ -77,3 +77,8 @@
 (def percent (shift slower 0 100))
 (percent 50)
 ;; => 1/4
+
+;; easing curve functions can be constructed
+(def cubic (ease/ease :cubic-in-out))
+(mapv cubic (range 0 1 (/ 1 10)))
+;; => [0.0 0.004 0.032 0.108 0.256 0.5 0.744 0.892 0.968 0.996]
