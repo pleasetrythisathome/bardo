@@ -10,11 +10,6 @@
                          [deraen/boot-cljx "0.1.0"]
                          [pandeiro/boot-http "0.2.0"]
                          [com.cemerick/double-check "0.6.1"]
-                         [om "0.8.0-beta2"]
-                         [prismatic/om-tools "0.3.6" :exclusions [org.clojure/clojure]]
-                         [sablono "0.2.22" :exclusions [com.facebook/react]]
-                         [shodan "0.4.1"]
-                         [clojure-complete "0.2.4"]
                          [org.clojure/tools.namespace "0.2.7"]]
                         (mapv #(conj % :scope "test")))
                        '[[org.clojure/clojure "1.7.0-alpha4"]
