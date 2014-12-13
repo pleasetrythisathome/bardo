@@ -145,6 +145,11 @@
           (throw
            (#+cljs js/Error #+clj Exception. (str "Cannot interpolate between " start " and " end))))))))
 
+(defn into-lazy-seq [intrpl vals]
+  (if (seq (rest vals))
+    (cons (intrpl (first vals)) (lazy-seq (into-lazy-seq intrpl (rest vals))))
+    (vector (intrpl (first vals)))))
+
 (defn mix
   [start end]
   (fn [t]

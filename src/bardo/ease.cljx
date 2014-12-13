@@ -1,5 +1,4 @@
 (ns bardo.ease
-  (:refer-clojure :exclude [reverse])
   (:require [clojure.string :as str]))
 
 (defn wrap
@@ -47,7 +46,7 @@
                    [_ [estart eend]] (get output (int idx))]
                ((shift f istart iend estart eend) t))))))
 
-(defn reverse
+(defn flip
   [f]
   (fn [t]
     (- 1 (f (- 1 t)))))
@@ -60,9 +59,9 @@
              (- 2 (f (- 2 (* 2 t))))))))
 
 (def modes {:in identity
-            :out reverse
+            :out flip
             :in-out reflect
-            :out-in (comp reflect reverse)})
+            :out-in (comp reflect flip)})
 
 ;; translated from https://github.com/warrenm/AHEasing and
 ;; and https://github.com/mbostock/d3/blob/master/src/interpolate/ease.js
