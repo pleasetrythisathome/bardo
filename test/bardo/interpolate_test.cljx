@@ -1,7 +1,10 @@
 (ns bardo.interpolate-test
-  (:require [clojure.test.check.core :as sc]
-            [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :as prop :include-macros true]))
+  (:require [bardo.interpolate :refer :all]
+            [bardo.ease :as ease]
+            ;; [clojure.test.check.core :as sc]
+            ;; [clojure.test.check.generators :as gen]
+            ;; [clojure.test.check.properties :as prop :include-macros true]
+            ))
 
 (comment
   (defn bench [intrpl steps]
@@ -25,7 +28,7 @@
       (mix (interpolate [1 2] [5 6]))
       ;;(apply [0.1])
       (bench 60)
-      )
+      (->> (mapv (partial mapv float))))
 
   (-> (interpolate {:a 1 :b 2} {:a 3 :b 5})
       (blend {:a 9 :b 10})

@@ -172,7 +172,6 @@
           (< t mid) (start t)
           (>= t mid) (end t))))))
 
-
 (defn pipeline
   [start second & states]
   (let [n (+ 2 (count states))

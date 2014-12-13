@@ -10,7 +10,7 @@
 (defn wrap
   "useful for wrapping easers in other easers, especially in theading macros"
   [f ease]
-  (easer (ease t)))
+  (easer (comp f ease)))
 
 (defn clamp
   "clamp input to function so that (<= 0 t 1)"
