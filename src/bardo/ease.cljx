@@ -1,12 +1,19 @@
 (ns bardo.ease
   (:require [clojure.string :as str]))
 
-(defn wrap
-  [f ease]
+(defn easer
+  "canonical definition of a higher order easing function"
+  [f]
   (fn [t]
-    (f (ease t))))
+    (f t)))
+
+(defn wrap
+  "useful for wrapping easers in other easers, especially in theading macros"
+  [f ease]
+  (easer (ease t)))
 
 (defn clamp
+  "clamp input to function so that (<= 0 t 1)"
   [f]
   (fn [t]
     (f (cond
@@ -15,6 +22,7 @@
         :else t))))
 
 (defn shift
+  "shifts the domain of input from [cmin cmax] to [nmin nmax]"
   ([f cmin cmax] (shift f cmin cmax 0 1))
   ([f cmin cmax nmin nmax]
      (fn [t]
@@ -24,20 +32,28 @@
               (* (- nmax nmin))
               (+ nmin))))))
 
-(defn make-range [coll]
+(defn partition-range
+  "for a range partition into pairs of each number and it's following
+   ex. [0 0.25 0.5 0.75 1] => [[0 0.25] [0.25 0.5] [0.5 0.75] [0.75 1]]"
+  [coll]
   (->> coll
-       ((juxt (comp #(conj % 0)
-                    (partial drop-last 1))
-              identity))
+       ((juxt (partial drop-last 1)
+              (partial drop 1)))
        (apply interleave)
        (partition 2)
-       (into [])))
+       (mapv vec)))
 
 (defn shift-parts
+  "shift input t over many steps
+   ex. (shift-part f [0 0.5 1] [0 0.3 1]) expands to roughly
+   =>  (fn [t]
+         (cond
+           (<= 0 t 0.5) (shift f 0 0.5 0 0.3)
+           (<= 0.5 t 1) (shift f 0.5 1 0.3 1)))"
   [f input output]
   (assert (= (count input) (count output)) "ranges must be the same length")
   (let [[input output] (->> [input output]
-                            (mapv (comp vec (partial map-indexed vector) make-range)))]
+                            (mapv (comp vec (partial map-indexed vector) partition-range)))]
     (fn [t]
       (cond
        (= t 0) (f 0)
@@ -47,11 +63,13 @@
                ((shift f istart iend estart eend) t))))))
 
 (defn flip
+  "reverse"
   [f]
   (fn [t]
     (- 1 (f (- 1 t)))))
 
 (defn reflect
+  "symmetrical around t = 0.5"
   [f]
   (fn [t]
     (* 0.5 (if (< t 0.5)
@@ -63,7 +81,7 @@
             :in-out reflect
             :out-in (comp reflect flip)})
 
-;; translated from https://github.com/warrenm/AHEasing and
+;; adapted from https://github.com/warrenm/AHEasing and
 ;; and https://github.com/mbostock/d3/blob/master/src/interpolate/ease.js
 
 (def PI   #+clj Math/PI #+cljs (.-PI js/Math))
@@ -81,6 +99,7 @@
   (* t t t))
 
 (defn poly
+  "raise t to power e"
   [e]
   (fn [t]
     (Math/pow t e)))
@@ -144,6 +163,8 @@
                :bounce (constantly bounce)})
 
 (defn ease
+  "easing function constructor. takes key-mode where mode #{:in :out :in-out}
+  ex. :bounce-in-out will return a symetrical bounce easing curve"
   [key & args]
   (let [[fn start end] (str/split (name key) #"-")
         ease-fn (or (get ease-fns (keyword fn))
