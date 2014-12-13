@@ -99,7 +99,8 @@
 
 (declare interpolate)
 
-(defprotocol IInterpolate (-interpolate [start end]))
+(defprotocol IInterpolate
+  (-interpolate [start end]))
 
 (extend-protocol IInterpolate
 

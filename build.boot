@@ -51,19 +51,6 @@
               :pretty-print true)
         (reload :port 3449)))
 
-(deftask examples
-  "watch and compile cljx, css, cljs, init cljs-repl and push changes to browser"
-  []
-  (let [src (:src-paths (get-env))]
-    (set-env! :src-paths (conj src "examples")))
-  (comp (serve :dir "target")
-        (cljx)
-        (cljs :output-to "main.js"
-              :optimizations :none
-              :unified true
-              :source-map true
-              :pretty-print true)))
-
 (deftask clojars
   "deploy library to clojars"
   []

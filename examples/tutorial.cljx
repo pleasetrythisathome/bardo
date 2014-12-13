@@ -1,7 +1,7 @@
 (ns bardo.examples.tutorial
-  (:require [bardo.ease :refer :all]
-            [bardo.interpolate :refer :all]
-            [bardo.transition :refer :all]))
+  (:require [bardo.ease :refer [wrap ease shift clamp]]
+            [bardo.interpolate :refer [interpolate into-lazy-seq mix blend chain pipeline]]
+            [bardo.transition :refer [transition]]))
 
 ;; ========== Interpolators ==========
 

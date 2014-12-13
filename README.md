@@ -20,10 +20,11 @@ Bardo is available in [clojars](https://clojars.org/bardo). Add this to your ```
 ```
 
 ```clj
-(ns example
-  (require [bardo.ease :refer :all]
-           [bardo.interpolate :refer :all]
-           [bardo.transition :refer :all]
+;; import vars used in feature examples below
+(ns bardo.features
+  (require [bardo.ease :refer [wrap ease shift clamp]]
+           [bardo.interpolate :refer [interpolate into-lazy-seq mix blend chain pipeline]]
+           [bardo.transition :refer [transition]]
 ```
 
 ## Features
@@ -166,10 +167,9 @@ interpolators can be used to produce a sequence of values, or to produce an inte
 ;; => [0 5.0 10]
 ```
 
-You can produce lazy sequences using bardo.interpolate/into-lazy-seq
+You can produce lazy sequences using ```bardo.interpolate/into-lazy-seq```
 
 ```clj
-;; produce infinite sequence of values approaching the start of the interpolator
 (take 100 (interpolate/into-lazy-seq zero->ten (iterate #(/ % 2) 1)))
 ;; only 100 are computed
 ```
@@ -235,10 +235,29 @@ Bardo provides a higher level api for creating common easing curve functions ```
 ;; => [0.0 0.004 0.032 0.108 0.256 0.5 0.744 0.892 0.968 0.996]
 ```
 
-## State Interpolation
+## Interpolation Protocols
+
+Bardo can automatically create interpolation functions from data. Bardo supports sequences, hashmaps, and numbers out of the box, but can be extended to support any clojure value. Interpolateable types satisfy:
 
 ```clj
+;; perform interpolation
+(defprotocol IInterpolate
+  (-interpolate [start end]))
+
+;; return "fresh" value in case of nil or nonexistent
+(defprotocol IFresh
+  (fresh [x]))
 ```
+
+```bardo.interpolate/interpolate``` provides an entry point that wraps nil values, checks for type compatibility, and wraps differently shaped data. ```interpolate``` should be used instead of ```-interpolate``` unless you have a good reason for doing otherwise.
+
+## Examples and Development
+
+I've been using the [boot](https://github.com/boot-clj/boot) build tool, it's great. To build bardo from source, install boot, and run ```boot development``` to get a full development setup complete with file server, cljx, cljs-repl, and js reloading. 
+
+## Graphics Integration
+
+Bardo is well suited for integration into graphical context like [Om](https://github.com/swannodette/om) (or [Reagent](http://holmsand.github.io/reagent/), [Quil](https://github.com/quil/quil), [libGDX](https://github.com/oakes/play-clj), etc. etc.). More examples of this coming soon.
 
 ## License
 
