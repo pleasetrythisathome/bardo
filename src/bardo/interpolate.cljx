@@ -173,14 +173,16 @@
           (>= t mid) (end t))))))
 
 (defn pipeline
-  [start second & states]
-  (let [n (+ 2 (count states))
-        input (->> (range 1 n)
-                   (map (partial * (/ 1 (dec n))))
-                   (cons 0))
-        pow-2 (->> (iterate #(/ % 2) 1)
-                   (take (dec n))
-                   (reverse)
-                   (cons 0))]
-    (-> (reduce chain (interpolate start second) states)
-        (ease/shift-parts input pow-2))))
+  ([states] (let [n (count states)]
+              (pipeline states (->> (range 1 n)
+                                    (map (partial * (/ 1 (dec n))))
+                                    (cons 0)))))
+  ([states input]
+     (let [n (count states)
+           [start second & states] states
+           output (->> (iterate #(/ % 2) 1)
+                       (take (dec n))
+                       (reverse)
+                       (cons 0))]
+       (-> (reduce chain (interpolate start second) states)
+           (ease/shift-parts input output)))))
