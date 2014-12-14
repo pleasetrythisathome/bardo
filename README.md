@@ -249,7 +249,35 @@ Bardo can automatically create interpolation functions from data. Bardo supports
   (fresh [x]))
 ```
 
-```bardo.interpolate/interpolate``` provides an entry point that wraps nil values, checks for type compatibility, and wraps differently shaped data. ```interpolate``` should be used instead of ```-interpolate``` unless you have a good reason for doing otherwise.
+```bardo.interpolate/interpolate``` provides an entry point that wraps nil values, checks for type compatibility, and wraps differently shaped data. ```interpolate``` should be used instead of ```-interpolate``` unless you want to bypass these wrapping mechanisms.
+
+Here's an example of extending bardo to interpolate between garden colors. 
+
+```clj
+(ns garden
+  (:require [bardo.interpolate :refer [IFresh IInterpolate -interpolate interpolate]]
+            [garden.color :as color :refer [rgb as-color]]))
+
+(extend-protocol IFresh
+  garden.color.CSSColor
+  (fresh [s]
+    (rgb 255 255 255)))
+
+(extend-protocol IInterpolate
+  garden.color.CSSColor
+  (-interpolate [start end]
+    (fn [t]
+      (as-color
+       (merge-with (fn [a b]
+                     (when (and a b)
+                       ((-interpolate a b) t)))
+                   start end)))))
+
+(map (interpolate (rgb 255 0 0) (rgb 0 255 0)) [0 0.5 1])
+;; => (#garden.color.CSSColor{:alpha nil, :lightness nil, :saturation nil, :hue nil, :blue 0, :green 0, :red 255}
+;;     #garden.color.CSSColor{:red 127.5, :green 127.5, :blue 0.0, :hue nil, :saturation nil, :lightness nil, :alpha nil}
+;;     #garden.color.CSSColor{:alpha nil, :lightness nil, :saturation nil, :hue nil, :blue 0, :green 255, :red 0}
+```                  
 
 ## Examples and Development
 

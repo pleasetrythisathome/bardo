@@ -11,6 +11,8 @@
                           [pandeiro/boot-http "0.2.0"]
                           [com.cemerick/double-check "0.6.1"]
                           [org.clojure/tools.namespace "0.2.7"]
+                          [clojure-complete "0.2.4"]
+                          [garden "1.2.5"]
                           [om "0.8.0-beta3"]
                           [sablono "0.2.22" :exclusions [com.facebook/react]]]
                         (mapv #(conj % :scope "test")))
