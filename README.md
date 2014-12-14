@@ -285,7 +285,46 @@ I've been using the [boot](https://github.com/boot-clj/boot) build tool, it's gr
 
 ## Graphics Integration
 
-Bardo is well suited for integration into graphical context like [Om](https://github.com/swannodette/om) (or [Reagent](http://holmsand.github.io/reagent/), [Quil](https://github.com/quil/quil), [libGDX](https://github.com/oakes/play-clj), etc. etc.). More examples of this coming soon.
+Bardo is well suited for integration into graphical context like [Om](https://github.com/swannodette/om) (or [Reagent](http://holmsand.github.io/reagent/), [Quil](https://github.com/quil/quil), [libGDX](https://github.com/oakes/play-clj), etc. etc.). 
+
+A simple Om example using the transition helper.
+```clj
+(defn mover
+  [{:keys [x y]} owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:x x
+       :y y})
+    om/IWillReceiveProps
+    (will-receive-props [_ {:keys [x y]}]
+      (let [[px py] ((juxt :x :y) (om/get-props owner))
+            intrpl-ch (transition {:x px :y py} {:x x :y y} {:duration 1000})]
+        (go-loop []
+          (when-let [{:keys [x y]} (<! intrpl-ch)]
+            (om/set-state! owner :x x)
+            (om/set-state! owner :y y)
+            (recur)))))
+    om/IRenderState
+    (render-state [_ {:keys [x y]}]
+      (html
+       [:div
+        {:style {:position "fixed"
+                 :top y
+                 :left x}}
+        [:div
+         "Location"]
+        [:div
+         (str "x: " (int x))]
+        [:div
+         (str "y: " (int y))]]))))
+```
+
+A more complex example blending previous interpolators is [here](https://github.com/pleasetrythisathome/bardo/blob/master/examples/om.cljs). More examples coming soon...
+
+## Disclaimer
+
+Bardo is very much alpha software. It's been used in production in some form, but is still under active development. The API is subject to change. Thoughts, comments, feature, and pull requests welcome.
 
 ## License
 
