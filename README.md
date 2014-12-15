@@ -256,27 +256,59 @@ Here's an example of extending bardo to interpolate between garden colors.
 ```clj
 (ns garden
   (:require [bardo.interpolate :refer [IFresh IInterpolate -interpolate interpolate]]
-            [garden.color :as color :refer [rgb as-color]]))
+            [garden.color :as color]))
 
 (extend-protocol IFresh
   garden.color.CSSColor
   (fresh [s]
-    (rgb 255 255 255)))
+    (color/rgb 255 255 255)))
 
 (extend-protocol IInterpolate
   garden.color.CSSColor
   (-interpolate [start end]
-    (fn [t]
-      (as-color
-       (merge-with (fn [a b]
-                     (when (and a b)
-                       ((-interpolate a b) t)))
-                   start end)))))
+    (let [[start end] (map color/as-rgb [start end])]
+      (fn [t]
+        (color/color+ start (color/color* t (color/color- end start)))))))
 
-(map (interpolate (rgb 255 0 0) (rgb 0 255 0)) [0 0.5 1])
-;; => (#garden.color.CSSColor{:alpha nil, :lightness nil, :saturation nil, :hue nil, :blue 0, :green 0, :red 255}
-;;     #garden.color.CSSColor{:red 127.5, :green 127.5, :blue 0.0, :hue nil, :saturation nil, :lightness nil, :alpha nil}
-;;     #garden.color.CSSColor{:alpha nil, :lightness nil, :saturation nil, :hue nil, :blue 0, :green 255, :red 0}
+(-> (interpolate (color/hsl 10 50 50) (color/rgb 0 255 0))
+    (map [0 0.25 0.5 0.75 1])
+    clojure.pprint/pprint)
+;; =>
+;; ({:alpha nil,
+;;   :lightness nil,
+;;   :saturation nil,
+;;   :hue nil,
+;;   :blue 64,
+;;   :green 85,
+;;   :red 191}
+;;  {:red 191.0,
+;;   :green 127.5,
+;;   :blue 64.0,
+;;   :hue nil,
+;;   :saturation nil,
+;;   :lightness nil,
+;;   :alpha nil}
+;;  {:red 191.0,
+;;   :green 170.0,
+;;   :blue 64.0,
+;;   :hue nil,
+;;   :saturation nil,
+;;   :lightness nil,
+;;   :alpha nil}
+;;  {:red 191.0,
+;;   :green 212.5,
+;;   :blue 64.0,
+;;   :hue nil,
+;;   :saturation nil,
+;;   :lightness nil,
+;;   :alpha nil}
+;;  {:alpha nil,
+;;   :lightness nil,
+;;   :saturation nil,
+;;   :hue nil,
+;;   :blue 64,
+;;   :green 255,
+;;   :red 191})
 ```                  
 
 ## Examples and Development
