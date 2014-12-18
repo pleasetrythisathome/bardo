@@ -352,7 +352,41 @@ A simple Om example using the transition helper.
          (str "y: " (int y))]]))))
 ```
 
-A more complex example blending previous interpolators is [here](https://github.com/pleasetrythisathome/bardo/blob/master/examples/om.cljs). More examples coming soon...
+Mixes between interpolators that represent overlapping time domains can be mixed by shifting the domains of the interpolators. 
+
+```clj
+(def a 0)
+(def b 10)
+(def intrpl (interpolate a b))
+(map intrpl [0 0.5 1])
+;; => (0 5.0 10)
+;; => (fn [t]) : t [0 -> 1] : a -> b
+
+;; interrupt at dt and interpolate to c
+(def dt 0.6)
+(def c 50)
+(def dintrpl (interpolate (intrpl dt) c))
+(map dintrpl [0 0.5 1])
+;; => (6.0 28.0 50.0)
+;; (fn [t]) : t [0 -> 1] : (intrpl dt) -> c
+
+;; to mix, we need to shift the domain of the input to intrpl
+(def sintrpl (ease/shift intrpl 0 (- 1 dt) dt 1))
+(map sintrpl [0 (- 1 dt) 1])
+;; => (6.0 10.0 16.0)
+;; we get a higher output at 1 because we've extended the domain
+;; (fn [t]) ; t [0 -> (- 1 dt)] : (intrpl dt) -> b
+(-> identity
+    (ease/shift 0 (- 1 dt) dt 1)
+    (map [0 (- 1 dt) 1]))
+;; => (0.6 1.0 1.6)
+
+(def mixed (mix sintrpl dintrpl))
+(map mixed [0 0.25 0.5 0.75 1])
+;; => (6.0 10.625 19.5 32.625 50.0)
+```
+
+A full om example is [here](https://github.com/pleasetrythisathome/bardo/blob/master/examples/om.cljs). More examples coming soon...
 
 ## Disclaimer
 
