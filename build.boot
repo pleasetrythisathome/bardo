@@ -36,8 +36,7 @@
 (deftask development
   "watch and compile cljx, css, cljs, init cljs-repl and push changes to browser"
   []
-  (let [src (:source-paths (get-env))]
-    (set-env! :source-paths (conj src "dev" "examples")))
+  (set-env! :source-paths #(conj % "dev" "examples"))
   (apply set-refresh-dirs (get-env :source-paths))
   (comp (serve :dir "target")
         (watch)
