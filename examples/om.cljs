@@ -28,12 +28,12 @@
     om/IWillReceiveProps
     (will-receive-props [_ {:keys [x y]}]
       (let [{:keys [intrpl start]} (om/get-state owner)
-            t (/ (- (now) start) speed)
+            dt (/ (- (now) start) speed)
             [px py] ((juxt :x :y) (om/get-props owner))
-            intrpl (if (< t 1)
+            intrpl (if (< dt 1)
                      (-> intrpl
-                         (shift 0 1 t 1)
-                         (mix (interpolate (intrpl t) {:x x :y y})))
+                         (shift 0 (- 1 dt) dt 1)
+                         (mix (interpolate (intrpl dt) {:x x :y y})))
                      (interpolate {:x px :y py}
                                   {:x x :y y}))]
         (om/set-state! owner :intrpl intrpl)
