@@ -15,8 +15,7 @@
         (color/color+ start (color/color* t (color/color- end start)))))))
 
 (-> (interpolate (color/hsl 10 50 50) (color/rgb 0 255 0))
-    (map [0 0.25 0.5 0.75 1])
-    clojure.pprint/pprint)
+    (map [0 0.25 0.5 0.75 1]))
 ;; =>
 ;; ({:alpha nil,
 ;;   :lightness nil,
