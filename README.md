@@ -16,7 +16,7 @@ Generally, the term "bardo" represents the inbetween state between life and deat
 Bardo is available in [clojars](https://clojars.org/bardo). Add this to your ```:dependencies``` vector.
 
 ```clj
-[bardo "0.1.0"]
+[bardo "0.1.1-SNAPSHOT"]
 ```
 
 ```clj

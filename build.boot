@@ -5,7 +5,8 @@
  :url "http://github.com/pleasetrythisathome/bardo"
  :dependencies (vec
                 (concat (->>
-                         '[[adzerk/boot-cljs "0.0-2411-5"]
+                         '[[adzerk/bootlaces "0.1.11"]
+                           [adzerk/boot-cljs "0.0-2411-5"]
                            [adzerk/boot-cljs-repl "0.1.7"]
                            [adzerk/boot-reload "0.2.0"]
                            [deraen/boot-cljx "0.2.0"]
@@ -23,16 +24,29 @@
                           [org.clojure/core.match "0.2.2"]
                           [clj-time "0.8.0"]
                           [com.andrewmcveigh/cljs-time "0.2.4"]]))
- :source-paths    #{"src"}
- :resource-paths    #{"resources"})
+ :source-paths  #{"src"}
+ :resource-paths #{"resources" "src"})
 
 (require
+ '[adzerk.bootlaces      :refer :all]
  '[adzerk.boot-cljs      :refer [cljs]]
  '[adzerk.boot-cljs-repl :refer [cljs-repl]]
  '[adzerk.boot-reload    :refer [reload]]
  '[deraen.boot-cljx      :refer [cljx]]
  '[pandeiro.http         :refer [serve]]
  '[clojure.tools.namespace.repl :refer [set-refresh-dirs]])
+
+
+(def +version+ "0.1.1-SNAPSHOT")
+(bootlaces! +version+)
+
+(task-options!
+ pom {:project 'bardo
+      :version +version+
+      :description "A clojure(script) library to assist with transitions between dimensions"
+      :license {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}
+      :url "https://github.com/pleasetrythisathome/bardo"
+      :scm {:url "https://github.com/pleasetrythisathome/bardo"}})
 
 (deftask development
   "watch and compile cljx, css, cljs, init cljs-repl and push changes to browser"
@@ -49,15 +63,6 @@
               :source-map true
               :pretty-print true)
         (reload :port 3449)))
-
-(deftask clojars
-  "deploy library to clojars"
-  []
-  (comp (pom :project 'bardo
-             :version "0.1.0-SNAPSHOT")
-        (jar)
-        (install)
-        (push)))
 
 (defn dev
   []
