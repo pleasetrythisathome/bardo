@@ -1,8 +1,8 @@
 (ns bardo.ease
   (:require [clojure.string :as str]))
 
-(defn easer
-  "canonical definition of a higher order easing function"
+(defn interpolator
+  "canonical definition of a higher order interpolator function"
   [f]
   (fn [t]
     (f t)))
@@ -10,7 +10,7 @@
 (defn wrap
   "useful for wrapping easers in other easers, especially in theading macros"
   [f ease]
-  (easer (comp f ease)))
+  (interpolator (comp f ease)))
 
 (defn clamp
   "clamp input to function so that (<= 0 t 1)"
