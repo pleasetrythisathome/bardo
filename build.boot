@@ -3,25 +3,26 @@
  :version "0.1.0-SNAPSHOT"
  :description "A clojure(script) library to assist with transitions between dimensions"
  :url "http://github.com/pleasetrythisathome/bardo"
- :dependencies (concat (->>
-                        '[[adzerk/boot-cljs "0.0-2411-5"]
-                          [adzerk/boot-cljs-repl "0.1.7"]
-                          [adzerk/boot-reload "0.2.0"]
-                          [deraen/boot-cljx "0.2.0"]
-                          [pandeiro/boot-http "0.3.0"]
-                          [com.cemerick/double-check "0.6.1"]
-                          [org.clojure/tools.namespace "0.2.7"]
-                          [clojure-complete "0.2.4"]
-                          [garden "1.2.5"]
-                          [om "0.8.0-beta3"]
-                          [sablono "0.2.22" :exclusions [com.facebook/react]]]
-                        (mapv #(conj % :scope "test")))
-                       '[[org.clojure/clojure "1.7.0-alpha4"]
-                         [org.clojure/clojurescript "0.0-2411"]
-                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                         [org.clojure/core.match "0.2.2"]
-                         [clj-time "0.8.0"]
-                         [com.andrewmcveigh/cljs-time "0.2.4"]])
+ :dependencies (vec
+                (concat (->>
+                         '[[adzerk/boot-cljs "0.0-2411-5"]
+                           [adzerk/boot-cljs-repl "0.1.7"]
+                           [adzerk/boot-reload "0.2.0"]
+                           [deraen/boot-cljx "0.2.0"]
+                           [pandeiro/boot-http "0.3.0"]
+                           [com.cemerick/double-check "0.6.1"]
+                           [org.clojure/tools.namespace "0.2.7"]
+                           [clojure-complete "0.2.4"]
+                           [garden "1.2.5"]
+                           [om "0.8.0-beta3"]
+                           [sablono "0.2.22" :exclusions [com.facebook/react]]]
+                         (mapv #(conj % :scope "test")))
+                        '[[org.clojure/clojure "1.7.0-alpha4"]
+                          [org.clojure/clojurescript "0.0-2411"]
+                          [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                          [org.clojure/core.match "0.2.2"]
+                          [clj-time "0.8.0"]
+                          [com.andrewmcveigh/cljs-time "0.2.4"]]))
  :source-paths    #{"src"}
  :resource-paths    #{"resources"})
 
