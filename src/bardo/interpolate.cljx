@@ -1,8 +1,7 @@
 (ns bardo.interpolate
-  #+cljs (:require-macros [cljs.core.match.macros :refer [match]])
   (:require [clojure.set :refer [union]]
             #+clj [clojure.core.match :refer [match]]
-            #+cljs [cljs.core.match]
+            #+cljs [cljs.core.match :refer-macros [match]]
             [bardo.ease :as ease]))
 
 ;; a protocol for birthing new values from nil
