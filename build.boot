@@ -37,7 +37,7 @@
  '[clojure.tools.namespace.repl :refer [set-refresh-dirs]])
 
 
-(def +version+ "0.1.1-SNAPSHOT")
+(def +version+ "0.1.2-SNAPSHOT")
 (bootlaces! +version+)
 
 (task-options!
