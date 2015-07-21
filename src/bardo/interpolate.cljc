@@ -3,8 +3,7 @@
     #?(:cljs [cljs.core.match :refer-macros [match]]
        :clj  [clojure.core.match :refer [match]])
     [clojure.set :refer [union]]
-    [bardo.ease :as ease])
-  (:import (clojure.lang PersistentArrayMap)))
+    [bardo.ease :as ease]))
 
 
 ;; a protocol for birthing new values from nil
