@@ -26,7 +26,7 @@
 
    :cljs (extend-protocol IFresh
 
-           Number
+           number
            (fresh [x]
              0)
 
