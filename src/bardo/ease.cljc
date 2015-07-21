@@ -17,30 +17,28 @@
   [f]
   (fn [t]
     (f (cond
-        (< t 0) 0
-        (> t 1) 1
-        :else t))))
+         (< t 0) 0
+         (> t 1) 1
+         :else t))))
 
 (defn shift
   "shifts the domain of input from [cmin cmax] to [nmin nmax]"
   ([f cmin cmax] (shift f cmin cmax 0 1))
   ([f cmin cmax nmin nmax]
-     (fn [t]
-       (f (-> t
-              (- cmin)
-              (/ (- cmax cmin))
-              (* (- nmax nmin))
-              (+ nmin))))))
+   (fn [t]
+     (f (-> t
+            (- cmin)
+            (/ (- cmax cmin))
+            (* (- nmax nmin))
+            (+ nmin))))))
 
 (defn partition-range
   "for a range partition into pairs of each number and it's following
    ex. [0 0.25 0.5 0.75 1] => [[0 0.25] [0.25 0.5] [0.5 0.75] [0.75 1]]"
   [coll]
-  (->> coll
-       ((juxt (partial drop-last 1)
-              (partial drop 1)))
-       (apply interleave)
+  (->> (interleave coll (rest coll))
        (partition 2)
+       ;; needed?
        (mapv vec)))
 
 (defn shift-parts
@@ -56,11 +54,11 @@
                             (mapv (comp vec (partial map-indexed vector) partition-range)))]
     (fn [t]
       (cond
-       (= t 0) (f 0)
-       (= t 1) (f 1)
-       :else (let [[idx [istart iend]] (first (filter (comp (fn [[start end]] (<= start t end)) second) input))
-                   [_ [estart eend]] (get output (int idx))]
-               ((shift f istart iend estart eend) t))))))
+        (= t 0) (f 0)
+        (= t 1) (f 1)
+        :else (let [[idx [istart iend]] (first (filter (comp (fn [[start end]] (<= start t end)) second) input))
+                    [_ [estart eend]] (get output (int idx))]
+                ((shift f istart iend estart eend) t))))))
 
 (defn flip
   "reverse"
@@ -76,15 +74,16 @@
              (f (* 2 t))
              (- 2 (f (- 2 (* 2 t))))))))
 
-(def modes {:in identity
-            :out flip
+(def modes {:in     identity
+            :out    flip
             :in-out reflect
             :out-in (comp reflect flip)})
 
 ;; adapted from https://github.com/warrenm/AHEasing and
 ;; and https://github.com/mbostock/d3/blob/master/src/interpolate/ease.js
 
-(def PI   #+clj Math/PI #+cljs (.-PI js/Math))
+(def PI #?(:clj  Math/PI
+           :cljs (.-PI js/Math)))
 (def PI_2 (/ PI 2))
 
 
@@ -97,6 +96,7 @@
   "Modeled after the cubic y = x^3"
   [t]
   (* t t t))
+
 
 (defn poly
   "raise t to power e"
@@ -119,7 +119,7 @@
   [t]
   (if (= t 0)
     t
-    (exp 2 (* 10 (dec t)))))
+    (Math/pow 2 (* 10 (dec t)))))
 
 (defn elastic
   "Modeled after the damped sine wave y = sin(13PI_2*x)*pow(2, 10 * (x - 1))"
@@ -129,7 +129,7 @@
 
 (defn back
   "Modeled after the overshooting cubic y = x^3-x*sin(x*pi)"
-  [t ]
+  [t]
   (- (* t t t)
      (* t (Math/sin (* t PI)))))
 
@@ -137,30 +137,30 @@
   "Modeled after some fun bouncing stuff"
   [t]
   (cond
-    (< t (/ 1 2.75))    (* 7.5625 t t)
-    (< t (/ 2 2.75))    (+ (* 7.5625
-                              (- t (/ 1.5 2.75))
-                              (- t (/ 1.5 2.75)))
-                           0.75)
-    (< t (/ 2.5 2.75))  (+ (* 7.5625
-                              (- t (/ 2.5 2.75))
-                              (- t (/ 2.5 2.75)))
-                           0.9375)
-    :else               (+ (* 7.5625
-                              (- t (/ 2.625 2.75))
-                              (- t (/ 2.625 2.75)))
-                           0.984375)))
+    (< t (/ 1 2.75)) (* 7.5625 t t)
+    (< t (/ 2 2.75)) (+ (* 7.5625
+                           (- t (/ 1.5 2.75))
+                           (- t (/ 1.5 2.75)))
+                        0.75)
+    (< t (/ 2.5 2.75)) (+ (* 7.5625
+                             (- t (/ 2.5 2.75))
+                             (- t (/ 2.5 2.75)))
+                          0.9375)
+    :else (+ (* 7.5625
+                (- t (/ 2.625 2.75))
+                (- t (/ 2.625 2.75)))
+             0.984375)))
 
-(def ease-fns {:linear (constantly identity)
-               :quad (constantly quad)
-               :cubic (constantly cubic)
-               :poly poly
-               :sine (constantly sine)
-               :circle (constantly circle)
-               :exp (constantly exp)
+(def ease-fns {:linear  (constantly identity)
+               :quad    (constantly quad)
+               :cubic   (constantly cubic)
+               :poly    poly
+               :sine    (constantly sine)
+               :circle  (constantly circle)
+               :exp     (constantly exp)
                :elastic (constantly elastic)
-               :back (constantly back)
-               :bounce (constantly bounce)})
+               :back    (constantly back)
+               :bounce  (constantly bounce)})
 
 (defn ease
   "easing function constructor. takes key-mode where mode #{:in :out :in-out}
