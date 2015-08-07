@@ -18,8 +18,8 @@
                            [om "0.8.0-beta3"]
                            [sablono "0.2.22" :exclusions [com.facebook/react]]]
                          (mapv #(conj % :scope "test")))
-                        '[[org.clojure/clojure "1.7.0"]
-                          [org.clojure/clojurescript "0.0-3308"]
+                        '[[org.clojure/clojure "1.8.0-alpha4"]
+                          [org.clojure/clojurescript "1.7.48"]
                           [org.clojure/core.async "0.1.338.0-5c5012-alpha"]
                           [org.clojure/core.match "0.3.0-alpha4"]
                           [clj-time "0.10.0"]
