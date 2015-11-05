@@ -205,8 +205,8 @@
         (do
           (throw
             (#?(:cljs js/Error
-                 :clj  Exception.))
-            (str "Cannot interpolate between " start " and " end)))))))
+                :clj  Exception.)
+              (str "Cannot interpolate between " start " and " end))))))))
 
 (defn into-lazy-seq [intrpl vals]
   (if (seq (rest vals))
