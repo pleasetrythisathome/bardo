@@ -26,11 +26,16 @@
   ([f cmin cmax] (shift f cmin cmax 0 1))
   ([f cmin cmax nmin nmax]
    (fn [t]
-     (f (-> t
-            (- cmin)
-            (/ (- cmax cmin))
-            (* (- nmax nmin))
-            (+ nmin))))))
+     (let [crange (- cmax cmin)
+           nrange (- nmax nmin)]
+       (f (if (or (= 0 crange)
+                  (= 0 nrange))
+            0
+            (-> t
+                (- cmin)
+                (/ crange)
+                (* nrange)
+                (+ nmin))))))))
 
 (defn partition-range
   "for a range partition into pairs of each number and it's following
